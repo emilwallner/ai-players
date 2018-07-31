@@ -12,6 +12,7 @@ class Game():
         self.program_height = 9
     
     def getInitProgram(self):
+        
         return np.zeros((9,9), dtype=np.int8)
     
     def getBoardSize(self):
