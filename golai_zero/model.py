@@ -46,12 +46,12 @@ class MainResnet(nn.Module):
         return x
 
 class ValueHead(nn.Module):
-    def __init__(self, inchannels=64, board_size=8):
+    def __init__(self, inchannels=64, program_size=9):
         super().__init__()
         self.conv1 = conv1x1(inchannels, 1)
         self.b = nn.BatchNorm2d(1)
         self.flatten = Flatten()
-        self.linear1 = nn.Linear(board_size**2, 256)
+        self.linear1 = nn.Linear(program_size**2, 256)
         self.linear2 = nn.Linear(256, 1)
     def forward(self, x):
         x = self.conv1(x)
@@ -62,12 +62,12 @@ class ValueHead(nn.Module):
         return x
 
 class PolicyHead(nn.Module):
-    def __init__(self, inchannels=64, board_size=8, vocab=512):
+    def __init__(self, inchannels=64, program_size=9, vocab=512):
         super().__init__()
         self.conv1 = conv1x1(inchannels, 1)
         self.b = nn.BatchNorm2d(1)
         self.flatten = Flatten()
-        self.linear = nn.Linear(board_size**2, 512)
+        self.linear = nn.Linear(program_size**2, 512)
         self.logsoftmax = nn.LogSoftmax(dim=1)
     
     def forward(self, x):
@@ -78,11 +78,11 @@ class PolicyHead(nn.Module):
         return x
 
 class GolaiZero(nn.Module):
-    def __init__(self, inchannels=2, channels=64, board_size=8, vocab=512, blocks=30):
+    def __init__(self, inchannels=2, channels=64, program_size=9, vocab=512, blocks=30):
         super().__init__()
         self.resnet = MainResnet(ResnetBlock, inchannels, channels)
-        self.policyhead = PolicyHead(channels, board_size, vocab)
-        self.valuehead = ValueHead(channels, board_size)
+        self.policyhead = PolicyHead(channels, program_size, vocab)
+        self.valuehead = ValueHead(channels, program_size)
     def forward(self, x):
         features = self.resnet(x)
         policy_out = self.policyhead(features)

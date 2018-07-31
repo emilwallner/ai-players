@@ -6,9 +6,12 @@ from torch import Tensor
 class Game():
     
     def __init__(self):
-        
+        self.game_round = 0
+        self.game_steps = 100
+        self.program_width = 9
+        self.program_height = 9
     
-    def getInitBoard(self):
+    def getInitProgram(self):
         return np.zeros((9,9), dtype=np.int8)
     
     def getBoardSize(self):
@@ -27,14 +30,14 @@ class Game():
         
         """
     
-    def getGameEnded(self, playerOne, playerTwo, game_round):
+    def getGameEnded(self, playerOne, playerTwo):
         
-        if game_round < PROGRAM_LENGHT:
+        if self.game_round < self.game_round_limit:
             return 0
         else:
             player1, player2 = convertToArenaPlayers(playerOne, playerTwo)
             arena.add_players(playerOne, playerTwo)
-            arena.run_steps(GAME_ROUNDS)
+            arena.run_steps(self.game_steps)
             return selectWinner(arena.grid())
     
     def selectWinner(self, board):
@@ -65,7 +68,7 @@ class Game():
         
         return player1, player2
     
-    def stringRepresentation(self, board):
+    def stringRepresentation(self, program):
         
         """
         
@@ -73,11 +76,11 @@ class Game():
         
         """
         
-        board_string = ""
+        program_string = ""
         for integer in board:
-            board_string += str(integer)
+            program_string += str(integer)
             
-        return board_string
+        return program_string
     
     def integerImageRepresentation(self, board):
         
@@ -87,7 +90,7 @@ class Game():
         
         """
         
-        return board.reshape(PROGRAM_WIDTH, PROGRAM_HEIGHT)
+        return board.reshape(self.program_width, self.program_height)
     
 
 # Structure from: https://github.com/suragnair/alpha-zero-general/blob/master/Game.py
