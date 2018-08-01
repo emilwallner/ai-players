@@ -17,7 +17,7 @@ class MCTS():
     def getActionProb(self, program, temp=1):
         
         for i in range(self.args.numMCTSSims):
-            self.search(program)
+            self.search(program, program)
             
         s = self.game.stringRepresentation(program)
         counts = [self.Nsa([s, a]) if (s,a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
@@ -32,19 +32,20 @@ class MCTS():
         probs = [x/float(sum(counts)) for x in counts]
         return probs
     
-    def search(self, playerOne, playerTwo):
+    def search(self, program, opponent):
         
         s = self.game.stringRepresentation(program)
         
-        if s not in self.Es:
-            self.Es[s] = self.game.getGameEnded(playerOne, playerTwo, self.round)
-        if self.Es[s]!=0:
-            return -self.Es[s]
+        if program[8] != -1 and opponent[8] != -1:
+            self.Es[s] = game.getGameEnded(program, opponent)
+            return self.Es[s]
+        else:
+            self.Es[s] = 0
         
         if s not in self.Ps:
-            self.Ps[s], v = self.nnet.predict(integerImageRepresentation(playerOne))
+            self.Ps[s], v = self.nnet.predict(integerImageRepresentation(program))
             self.Ns[s] = 0
-            return -v
+            return v
         
         cur_best = -float('inf')
         best_act = -1
@@ -61,9 +62,9 @@ class MCTS():
                 best_act = a
         
         a = best_act
-        next_s, next_player = self.game.getNextState(playerOne, a)
+        next_program, opponent = self.game.getNextState(program, opponent, a)
         
-        v = self.search(playerOne, playerTwo)
+        v = self.search(next_program, opponent)
         
         if (s, a) in self.Qsa:
             self.Qsa[(s,a)] = (self.Nsa[(s,a)]*self.Qsa[(s,a)] + v) /(self.Nsa[(s,a)]+1)
@@ -73,6 +74,6 @@ class MCTS():
             self.Nsa[(s,a)] = 1
         
         self.Ns[s] += 1
-        return -v
+        return v
     
 # Structure from: https://github.com/suragnair/alpha-zero-general/blob/master/MCTS.py
