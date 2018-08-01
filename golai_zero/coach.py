@@ -22,21 +22,21 @@ class Coach():
     def executeEpisode(self, oponent):
         
         trainExamples = []
-        program = self.game.getInitProgram()
-        self.curPlayer = 1
+        self.curProgram = self.game.getInitProgram()
+        self.curOpponent = self.game.getInitProgram()
         episodeStep = 0
         
         while True:
             episodeStep += 1
-            temp = int(episodeStep < self.args.temThreshold)
+            temp = int(episodeStep < self.args.tempThreshold)
             
-            pi = self.mcts.getActionProb(program, temp=temp)
+            pi = self.mcts.getActionProb(self.curProgram, temp=temp)
+            trainExamples.append([self.curProgram, pi])
             action = np.random.choice(len(pi), p=pi)
-            program, self.curPlayer = self.game.getNextState(program, action)
+            self.game.getNextState(self.curProgram, self.curOpponent, action)
             
-            r = self.game.getGameEnded(program, oponent, episodeStep)
-            
-            if r!=0:
+            if episodeStep == self.args.vocabLen * 2:
+                r = self.game.getGameEnded(self.curProgram, self.curOpponent, episodeStep)
                 return[(x[0], x[2], r*((-1)**(x[1]!=self.curPlayer))) for x in trainExamples]
             
         def learn(self):

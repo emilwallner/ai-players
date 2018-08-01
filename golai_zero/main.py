@@ -5,6 +5,10 @@ from game import Game
 args = dotdict({
     'numIters': 1000,
     'numEps': 100,
+    'vocabWidth': 3, 
+    'vocabHeight': 3,
+    'programSize': 9,
+    'vocabLen': 9,
     'tempThreshold': 15,
     'updateThreshold': 0.6,
     'maxlenOfQueue': 200000,
