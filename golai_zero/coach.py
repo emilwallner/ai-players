@@ -1,5 +1,7 @@
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
 from collections import deque
-from Arena import Arena
+from game.GOLAI.arena import Arena
 from MCTS import MCTS
 import numpy as np
 from pytorch_classification.utils import Bar, AverageMeter
@@ -20,6 +22,8 @@ class Coach():
         self.allOpponents = createRandomOpp(self.args.numEps)
     
     def createRandomOpp(eps):
+        # TODO
+        pass
         
     
     def executeEpisode(self, eps):
@@ -47,7 +51,7 @@ class Coach():
             
             for i in range(1, self.args.numIters+1):
                 
-                print('---------Iter ' str(i) + '---------')
+                print('---------Iter ' + str(i) + '---------')
 
                     
                 iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
@@ -63,9 +67,9 @@ class Coach():
                     iterationTrainExamples += self.executeEpisode(eps)
                     eps_time.update(time.time() - end)
                     end = time.time()
-                    bar.suffix = '({eps}/{maxeps} Eps Time: (et:.3f | Total: {total:} | ETA: \
+                    bar.suffix = '({eps}/{maxeps} Eps Time: {et:.3f} | Total: {total:} | ETA: \
                     {eta:}'.format(eps=eps+1, maxeps=self.args.numEps, et=eps_time.avg,\
-                    bar.elapsed_td, eta=bar.eta_td)
+                    total=bar.elapsed_td, eta=bar.eta_td)
 
                     bar.next()
                 bar.finished()
@@ -86,7 +90,7 @@ class Coach():
                 
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
                 
-                mcts = MCTS(self.game, self.nnet, self.args)
+                mcts = MCTS(self.game, self.nnet, self.args) ## why?
                 self.nnet.train(trainExamples)
             
             
@@ -98,9 +102,9 @@ class Coach():
                 
                 if not os.path.exists(folder):
                     os.makedirs(folder)
-                filename = os.apth.join(folder, self.getCheckpointFile(iteration)+".examples)
+                filename = os.path.join(folder, self.getCheckpointFile(iteration)+".examples")
                 
-                with open(filename, "wb+" as f:
+                with open(filename, "wb+") as f:
                     Pickler(f).dump(self.trainExamplesHistory)
                 f.closed
             

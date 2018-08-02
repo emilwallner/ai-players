@@ -1,6 +1,7 @@
-from GOLAI import arena
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
+from game.GOLAI.arena import Arena
 import random
-from settings import *
 from torch import Tensor
 
 class Game():
@@ -15,7 +16,7 @@ class Game():
         self.program_size = 36
         self.vocab_w = 2
         self.vocab_h = 2
-        self.prediction_len = self.program_size // self.vocab_wh
+        self.prediction_len = self.program_size // self.vocab_w
     
     def getNextState(self, program, action):
         
@@ -64,15 +65,15 @@ class Game():
                 self.program[self.x + x][self.y + y] = grid[x][y]
     
     def next_cord(self):
-         """ The program is initialized with -1, if it's something else we know its been filled already.
-        The program is added in a spiral shape starting by moving to the right. Move down if left block 
-        is filled and bottom is emtpy, or move left if top is filled, or move up if right is filled, else 
-        move right."""
+        #The program is initialized with -1, if it's something else we know its been filled already.
+        #The program is added in a spiral shape starting by moving to the right. Move down if left block 
+        #is filled and bottom is emtpy, or move left if top is filled, or move up if right is filled, else 
+        #move right.
         
         if self.start:
             self.x += self.vocab_w
             self.start = False
-        
+
         if self.x != 0 and self.program[self.x - 1, self.y] != -1 \
         and self.program[self.x, self.y + self.vocab_h] == -1:
             self.y += self.vocab_h
@@ -95,16 +96,14 @@ class Game():
     
     def getGameEnded(self, playerOne, playerTwo):
         
-        if self.game_round < self.game_round_limit:
-            return 0
-        else:
-            player1, player2 = convertToArenaPlayers(playerOne, playerTwo)
-            arena.add_players(playerOne, playerTwo)
-            arena.run_steps(self.game_steps)
-            return selectWinner(arena.grid())
+        player1, player2 = convertToArenaPlayers(playerOne, playerTwo)
+        arena.add_players(playerOne, playerTwo)
+        arena.run_steps(self.game_steps)
+        return selectWinner(arena.grid())
     
     def selectWinner(self, board):
-        ones = 0, twos = 0
+        ones = 0
+        twos = 0
 
         for i in game_result:
             if i == 1:
