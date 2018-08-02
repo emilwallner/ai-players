@@ -55,7 +55,7 @@ class Coach():
                 eps_time = AverageMeter()
                 bar = Bar('Self Play', max=self.args.numEps)
                 end = time.time()
-                self.trainOpponents = self.allOpponets[:self.args.numEps]
+                self.trainOpponents = self.allOpponents[:self.args.numEps]
                 shuffle(self.trainOpponents)
                 
                 for eps in range(self.args.numEps):
