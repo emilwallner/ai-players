@@ -1,7 +1,7 @@
 import sys, os
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../../game/GOLAI')))
+from arena import Arena
 from collections import deque
-from game.GOLAI.arena import Arena
 from MCTS import MCTS
 import numpy as np
 from pytorch_classification.utils import Bar, AverageMeter

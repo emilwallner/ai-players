@@ -22,7 +22,7 @@ class MCTS():
         s = self.game.stringRepresentation(program)
         counts = [self.Nsa([s, a]) if (s,a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
         
-        if temp=0:
+        if temp == 0:
             bestAction = np.argmax(counts)
             probs = [0]*len(counts)
             probs[bestAction]=1
@@ -50,7 +50,7 @@ class MCTS():
         
         for a in range(self.game.getActionSize()):
             if (s,a) in self.Qsa:
-                u = self.Qsa[(s,a)] + self.args.cpuct*self.Ps[s\
+                u = self.Qsa[(s,a)] + self.args.cpuct*self.Ps[s]\
                 [a]*math.sqrt(self.Ns[s])/(1+self.Nsa[(s,a)])
             else:
                 u = self.args.cpuct*self.Ps[s][a]*math.sqrt(self.Ns[s] + EPS)

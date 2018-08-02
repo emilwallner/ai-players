@@ -1,6 +1,6 @@
 import sys, os
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../..')))
-from game.GOLAI.arena import Arena
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../../game/GOLAI')))
+from arena import Arena
 import random
 from torch import Tensor
 
