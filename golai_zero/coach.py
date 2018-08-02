@@ -17,56 +17,60 @@ class Coach():
         self.args = args
         self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []
-        self.skipFirstSelfPlay = False
+        self.allOpponents = createRandomOpp(self.args.numEps)
+    
+    def createRandomOpp(eps):
         
-    def executeEpisode(self, oponent):
+    
+    def executeEpisode(self, eps):
         
         trainExamples = []
         self.curProgram = self.game.getInitProgram()
-        self.curOpponent = self.game.getInitProgram()
+        self.curOpponent = self.trainOpponents[eps]
         episodeStep = 0
         
         while True:
             episodeStep += 1
             temp = int(episodeStep < self.args.tempThreshold)
             
-            pi = self.mcts.getActionProb(self.curProgram, temp=temp)
-            trainExamples.append([self.curProgram, pi])
+            pi = self.mcts.getActionProb(self.curProgram, self.curOpponent, selftemp=temp)
+            trainExamples.append([self.curProgram, pi, None])
             action = np.random.choice(len(pi), p=pi)
             self.game.getNextState(self.curProgram, self.curOpponent, action)
             
-            if episodeStep == self.args.vocabLen * 2:
+            if episodeStep == self.args.vocabLen:
+                self.allOpponents.append(self.curProgram)
                 r = self.game.getGameEnded(self.curProgram, self.curOpponent, episodeStep)
-                return[(x[0], x[2], r*((-1)**(x[1]!=self.curPlayer))) for x in trainExamples]
+                return[(x[0], x[1], r) for x in trainExamples]
             
         def learn(self):
             
             for i in range(1, self.args.numIters+1):
                 
                 print('---------Iter ' str(i) + '---------')
+
+                    
+                iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
+
+                eps_time = AverageMeter()
+                bar = Bar('Self Play', max=self.args.numEps)
+                end = time.time()
+                self.trainOpponents = self.allOpponets[:self.args.numEps]
+                shuffle(self.trainOpponents)
                 
-                if not self.skipFirstSelfPlay or i > 1:
-                    
-                    iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
-                    
-                    eps_time = AverageMeter()
-                    bar = Bar('Self Play', max=self.args.numEps)
+                for eps in range(self.args.numEps):
+                    self.mcts = MCTS(self.game, self.nnet, self.args)
+                    iterationTrainExamples += self.executeEpisode(eps)
+                    eps_time.update(time.time() - end)
                     end = time.time()
-                    
-                    for eps in range(self.args.numEps):
-                        self.mcts = MCTS(self.game, self.nnet, self.args)
-                        iterationTrainExamples += self.executeEpisode()
+                    bar.suffix = '({eps}/{maxeps} Eps Time: (et:.3f | Total: {total:} | ETA: \
+                    {eta:}'.format(eps=eps+1, maxeps=self.args.numEps, et=eps_time.avg,\
+                    bar.elapsed_td, eta=bar.eta_td)
 
-                        eps_time.update(time.time() - end)
-                        end = time.time()
-                        bar.suffix = '({eps}/{maxeps} Eps Time: (et:.3f | Total: {total:} | ETA: \
-                        {eta:}'.format(eps=eps+1, maxeps=self.args.numEps, et=eps_time.avg,\
-                        bar.elapsed_td, eta=bar.eta_td)
+                    bar.next()
+                bar.finished()
 
-                        bar.next()
-                    bar.finished()
-                    
-                    self.trainExamplesHistory.append(interationTrainExamples)
+                self.trainExamplesHistory.append(interationTrainExamples)
                 
                 if len(self.trainExamplesHistory) > self.args.numItersForTrainExamplesHistory:
                     print("len(trainExamplesHistory) =", len(self.trainExamplesHistory), \
