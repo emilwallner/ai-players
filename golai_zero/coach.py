@@ -21,9 +21,15 @@ class Coach():
         self.trainExamplesHistory = []
         self.allOpponents = createRandomOpp(self.args.numEps)
     
-    def createRandomOpp(eps):
-        # TODO
-        pass
+    def createRandomOpp(self):
+        randomPrograms = []
+        
+        for i in range(self.args.numEps):
+            value = [1, 0]  
+            dist = random.random()
+            randomPrograms.append(np.random.choice(value, (self.args.programSize, self.args.programSize), p=[dist, (1.0 - dist)]))
+
+        return np.array(randomPrograms, dtype=np.int8)
         
     
     def executeEpisode(self, eps):
