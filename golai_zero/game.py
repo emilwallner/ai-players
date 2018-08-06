@@ -4,20 +4,14 @@ from arena import Arena
 import random
 from torch import Tensor
 
+import random
+from torch import Tensor
+
 class Game():
     
-    def __init__(self):
-        self.game_round = 0
-        self.game_steps = 50
-        self.program_width = 6
-        self.program_height = 6
-        self.start = True
-        self.vocab = 16
-        self.program_size = 36
-        self.vocab_w = 2
-        self.vocab_h = 2
-        self.prediction_len = self.program_size // self.vocab_w
-    
+    def __init__(self, args):
+        self.args = args
+        
     def getNextState(self, program, action):
         
         """
@@ -39,66 +33,70 @@ class Game():
 
         """ Creates the input for the neural network: """
         
-        self.x = ((self.program_size - self.vocab_w) // 2) - 1
-        self.y = ((self.program_size - self.vocab_h) // 2) - 1
-        self.program = np.full((self.program_size, self.program_size), -1, dtype=np.int8)
+        self.start = True
+        self.x = (self.args.programWidth // 2) - (self.args.vocabWidth // 2) 
+        self.y = (self.args.programHeight // 2) - (self.args.vocabHeight // 2) 
+        self.program = np.full((self.args.programWidth, self.args.programHeight), -1, dtype=np.int8)
         self.create_player_from_sequence(sequence)
         return self.program
     
     def create_player_from_sequence(self, sequence):  
         for digit in sequence:
+            print(digit)
             if digit == -1:
                 break
-            grid = digit_to_grid(self, digit)
-            add_grid_to_program(self, grid)
-            next_cord(self)
+            grid = self.digit_to_grid(digit)
+            self.add_grid_to_program(grid)
+            self.next_cord()
                 
     def digit_to_grid(self, digit):
         # Turn digit into binary representation to create a word
         binary = "{0:b}".format(digit)
         binary = binary.zfill(4)
-        return np.array(binary).reshape((self.vocab_w, self.vocab_h))
+        binary = list(str(binary))
+        return np.array(binary).reshape((self.args.vocabWidth, self.args.vocabHeight))
     
     def add_grid_to_program(self, grid):
-        for y in self.vocab_h:
-            for x in self.vocab_w:
+        for x in range(self.args.vocabWidth):
+            for y in range(self.args.vocabHeight):
+                print(self.x + x, self.y + y, x, y)
                 self.program[self.x + x][self.y + y] = grid[x][y]
     
     def next_cord(self):
-        #The program is initialized with -1, if it's something else we know its been filled already.
-        #The program is added in a spiral shape starting by moving to the right. Move down if left block 
-        #is filled and bottom is emtpy, or move left if top is filled, or move up if right is filled, else 
-        #move right.
+        
+         #The program is initialized with -1, if it's something else we know its been filled already.\
+         #The program is added in a spiral shape starting by moving to the right. Move down if left block \
+         #is filled and bottom is emtpy, or move left if top is filled, or move up if right is filled, else \
+         #move right.
         
         if self.start:
-            self.x += self.vocab_w
+            self.x += self.args.vocabWidth
+            print(self.x)
             self.start = False
-
-        if self.x != 0 and self.program[self.x - 1, self.y] != -1 \
-        and self.program[self.x, self.y + self.vocab_h] == -1:
-            self.y += self.vocab_h
+        elif self.x != 0 and self.program[self.x - 1, self.y] != -1 \
+        and self.program[self.x, self.y + self.args.vocabHeight] == -1:
+            self.y += self.args.vocabHeight
         elif self.y != 0 and self.program[self.x, self.y - 1] != -1:
-            self.x -= self.vocab_w
-        elif self.x + self.vocab_w != self.program_size and self.program[self.x + self.vocab_w, self.y] != -1:
-            self.y -= self.vocab_h
+            self.x -= self.args.vocabWidth
+        elif self.x + self.args.vocabWidth != self.args.programWidth and self.program[self.x + self.args.vocabWidth, self.y] != -1:
+            self.y -= self.args.vocabHeight
         else:
-            self.x += self.vocab_w
+            self.x += self.args.vocabWidth
     
     def getInitProgram(self):
         
-        return np.full((self.prediction_len), -1, dtype=np.int8)
+        return np.full((self.args.predictionLen), -1, dtype=np.int8)
     
     def getBoardSize(self):
         return arena.size()
     
     def getActionSize(self):
-        return(self.vocab_size)
+        return(self.args.vocabLen)
     
     def getGameEnded(self, playerOne, playerTwo):
-        
         player1, player2 = convertToArenaPlayers(playerOne, playerTwo)
         arena.add_players(playerOne, playerTwo)
-        arena.run_steps(self.game_steps)
+        arena.run_steps(self.args.gameSteps)
         return selectWinner(arena.grid())
     
     def selectWinner(self, board):
@@ -116,7 +114,7 @@ class Game():
         elif ones > twos:
             winner = Tensor(-1.0)
         else:
-            winner = Tensor(random.uniform(0.001, 0.1))
+            winner = Tensor(random.uniform(0.000001, 0.000000001))
             
         return winner
         
@@ -143,7 +141,3 @@ class Game():
             program_string += str(integer)
             
         return program_string
-    
-  
-
-# Structure from: https://github.com/suragnair/alpha-zero-general/blob/master/Game.py

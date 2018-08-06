@@ -1,18 +1,19 @@
 import torch
 from torch import nn
+from utils import dotdict
 import torch.nn.functional as F
-from settings import BLOCKS
 
 def conv3x3(inchannels, channels, ks=3, s=1, p=1):
     return nn.Conv2d(inchannels, channels, kernel_size=ks, stride=s, padding=p)
 def conv1x1(inchannels, channels, ks=1, s=1, p=0):
     return nn.Conv2d(inchannels, channels, kernel_size=ks, stride=s, padding=p)
+
 class Flatten(nn.Module):
     def __init__(self): super().__init__()
     def forward(self, x): return x.view(x.size(0), -1)
 
 class ResnetBlock(nn.Module):
-    def __init__(self, channels=64):
+    def __init__(self, channels):
         super().__init__()
         self.conv1 = conv3x3(channels, channels)
         self.b1 = nn.BatchNorm2d(channels)
@@ -28,7 +29,7 @@ class ResnetBlock(nn.Module):
         return out_x
 
 class MainResnet(nn.Module):
-    def __init__(self, create_block, inchannels=2, channels=64, blocks=30):
+    def __init__(self, create_block, blocks, inchannels, channels):
         super().__init__()        
         self.conv1 = conv3x3(inchannels, channels)
         self.b1 = nn.BatchNorm2d(channels)
@@ -46,9 +47,9 @@ class MainResnet(nn.Module):
         return x
 
 class ValueHead(nn.Module):
-    def __init__(self, inchannels=64, program_size=9):
+    def __init__(self, program_size, channels):
         super().__init__()
-        self.conv1 = conv1x1(inchannels, 1)
+        self.conv1 = conv1x1(channels, 1)
         self.b = nn.BatchNorm2d(1)
         self.flatten = Flatten()
         self.linear1 = nn.Linear(program_size**2, 256)
@@ -62,9 +63,9 @@ class ValueHead(nn.Module):
         return x
 
 class PolicyHead(nn.Module):
-    def __init__(self, inchannels=64, program_size=9, vocab=512):
+    def __init__(self, program_size, vocab, channels):
         super().__init__()
-        self.conv1 = conv1x1(inchannels, 1)
+        self.conv1 = conv1x1(channels, 1)
         self.b = nn.BatchNorm2d(1)
         self.flatten = Flatten()
         self.linear = nn.Linear(program_size**2, 512)
@@ -78,19 +79,15 @@ class PolicyHead(nn.Module):
         return x
 
 class GolaiZero(nn.Module):
-    def __init__(self, inchannels=2, channels=64, program_size=9, vocab=512, blocks=30):
+    def __init__(self, args):
         super().__init__()
-        self.resnet = MainResnet(ResnetBlock, inchannels, channels)
-        self.policyhead = PolicyHead(channels, program_size, vocab)
-        self.valuehead = ValueHead(channels, program_size)
+        self.resnet = MainResnet(ResnetBlock, args.resnetBlocks, args.resnetInputDepth, args.resnetChannelDepth)
+        self.policyhead = PolicyHead(args.programSize, args.vocabLen, args.resnetChannelDepth)
+        self.valuehead = ValueHead(args.programSize, args.resnetChannelDepth)        
+        
+        
     def forward(self, x):
         features = self.resnet(x)
         policy_out = self.policyhead(features)
         value_out = self.valuehead(features)
         return policy_out, value_out
-
-
-# Print overview of model
-# from torchsummary import summary
-# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# golai_zero = GolaiZero().to(device)

@@ -1,14 +1,22 @@
 from coach import Coach
 from model import GolaiZero
 from game import Game
+from utils import dotdict
 
 args = dotdict({
+    
+    #Program
     'numIters': 1000,
     'numEps': 100,
-    'vocabWidth': 3, 
-    'vocabHeight': 3,
-    'programSize': 9,
-    'vocabLen': 9,
+    'vocabWidth': 2, 
+    'vocabHeight': 2,
+    'programSize': 6,
+    'programWidth': 6,
+    'programHeight': 6,
+    'predictionLen': 6*6 // 2*2,
+    'vocabLen': 2**(2*2), 
+    
+    # Simulations
     'tempThreshold': 15,
     'updateThreshold': 0.6,
     'maxlenOfQueue': 200000,
@@ -16,6 +24,13 @@ args = dotdict({
     'arenaCompare': 40,
     'cpuct': 1,
     
+    # Game 
+    'gameSteps': 100,
+    
+    # Model
+    'resnetBlocks': 10,
+    'resnetInputDepth': 1,
+    'resnetChannelDepth': 64,
     'checkpoint': './temp/',
     'load_model': False,
     'load_folder_file': ('/dev/models/8x100x50', 'best.pth.tar'),
@@ -24,7 +39,7 @@ args = dotdict({
 
 if __name__=="__main__":
     g = Game(6)
-    nnet = GolaiZero()
+    nnet = GolaiZero(args)
     
     if args.load_model:
         nnet.load_checkpoint(args.load_folder_file[0], args.load_folder_file[1])
