@@ -1,16 +1,15 @@
-import sys, os
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '../../game/GOLAI')))
-from arena import Arena
 import random
 from torch import Tensor
+import numpy as np
 
 import random
 from torch import Tensor
 
 class Game():
     
-    def __init__(self, args):
+    def __init__(self, args, arena):
         self.args = args
+        self.arena = arena
         
     def getNextState(self, program, action):
         
@@ -21,12 +20,11 @@ class Game():
         Creates -1 for next action square.
         
         """
-        
-        for i in program:
-            if i == -1:
+        for i in range(len(program)):
+            if program[i] == -1:
                 program[i] = action
                 return program
-        print("getNextState was called with a full board")
+        print("getNextState was called with a full program")
         return program
         
     def integerImageRepresentation(self, sequence):
@@ -40,9 +38,8 @@ class Game():
         self.create_player_from_sequence(sequence)
         return self.program
     
-    def create_player_from_sequence(self, sequence):  
+    def create_player_from_sequence(self, sequence):
         for digit in sequence:
-            print(digit)
             if digit == -1:
                 break
             grid = self.digit_to_grid(digit)
@@ -59,7 +56,6 @@ class Game():
     def add_grid_to_program(self, grid):
         for x in range(self.args.vocabWidth):
             for y in range(self.args.vocabHeight):
-                print(self.x + x, self.y + y, x, y)
                 self.program[self.x + x][self.y + y] = grid[x][y]
     
     def next_cord(self):
@@ -71,7 +67,6 @@ class Game():
         
         if self.start:
             self.x += self.args.vocabWidth
-            print(self.x)
             self.start = False
         elif self.x != 0 and self.program[self.x - 1, self.y] != -1 \
         and self.program[self.x, self.y + self.args.vocabHeight] == -1:
@@ -85,24 +80,19 @@ class Game():
     
     def getInitProgram(self):
         
-        return np.full((self.args.predictionLen), -1, dtype=np.int8)
-    
-    def getBoardSize(self):
-        return arena.size()
-    
-    def getActionSize(self):
-        return(self.args.vocabLen)
+        return np.full((self.args.predictionLen), -1, dtype=np.int8).tolist()
     
     def getGameEnded(self, playerOne, playerTwo):
-        player1, player2 = convertToArenaPlayers(playerOne, playerTwo)
-        arena.add_players(playerOne, playerTwo)
-        arena.run_steps(self.args.gameSteps)
-        return selectWinner(arena.grid())
+        playerOne = self.integerImageRepresentation(playerOne)
+        playerTwo = self.integerImageRepresentation(playerTwo)
+        self.arena.add_players(playerOne, playerTwo)
+        self.arena.run_steps(self.args.gameSteps)
+        return self.selectWinner(self.arena.grid().flatten())
     
-    def selectWinner(self, board):
+    def selectWinner(self, game_result):
         ones = 0
         twos = 0
-
+        
         for i in game_result:
             if i == 1:
                 ones += 1
@@ -110,34 +100,19 @@ class Game():
                 twos += 1
 
         if ones > twos:
-            winner = Tensor(1.0)
+            winner = 1
         elif ones > twos:
-            winner = Tensor(-1.0)
+            winner = -1
         else:
-            winner = Tensor(random.uniform(0.000001, 0.000000001))
+            winner = random.uniform(0.000001, 0.000000001)
             
         return winner
-        
-    def convertToArenaPlayers(player1, player2):
-        
-        """
-        
-        Turns the working format into a 2D numpy array int8
-        
-        """
-        
-        return player1, player2
+
     
     def stringRepresentation(self, program):
-        
-        """
-        
-        Turn board into a string used for the MCST hashing.
-        
-        """
-        
+
         program_string = ""
-        for integer in board:
+        for integer in program:
             program_string += str(integer)
             
         return program_string

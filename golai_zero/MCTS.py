@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from copy import deepcopy
 EPS = 1e-8
 
 class MCTS():
@@ -17,10 +18,11 @@ class MCTS():
     def getActionProb(self, program, opponent, temp=1):
         
         for i in range(self.args.numMCTSSims):
-            self.search(program, opponent)
+            program_sim = deepcopy(program)
+            self.search(program_sim, opponent)
             
         s = self.game.stringRepresentation(program)
-        counts = [self.Nsa([s, a]) if (s,a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
+        counts = [self.Nsa[(s,a)] if (s,a) in self.Nsa else 0 for a in range(self.args.vocabLen)]
         
         if temp == 0:
             bestAction = np.argmax(counts)
@@ -30,42 +32,40 @@ class MCTS():
         
         counts = [x**(1./temp) for x in counts]
         probs = [x/float(sum(counts)) for x in counts]
+        
         return probs
     
     def search(self, program, opponent):
         
         s = self.game.stringRepresentation(program)
         
-        if program[8] != -1:
-            _, v = self.nnet.predict(integerImageRepresentation(program))
+        if program[-1] != -1:
+            _, v = self.nnet.predict(self.game.integerImageRepresentation(program))
             return v
                 
         if s not in self.Ps:
-            self.Ps[s], v = self.nnet.predict(integerImageRepresentation(program))
+            self.Ps[s], v = self.nnet.predict(self.game.integerImageRepresentation(program))
             self.Ns[s] = 0
             return v
         
         cur_best = -float('inf')
         best_act = -1
         
-        for a in range(self.game.getActionSize()):
+        for a in range(self.args.vocabLen):
             if (s,a) in self.Qsa:
-                u = self.Qsa[(s,a)] + self.args.cpuct*self.Ps[s]\
-                [a]*math.sqrt(self.Ns[s])/(1+self.Nsa[(s,a)])
+                u = self.Qsa[(s,a)] + self.args.cpuct*self.Ps[s][a]*math.sqrt(self.Ns[s])/(1+self.Nsa[(s,a)])
             else:
                 u = self.args.cpuct*self.Ps[s][a]*math.sqrt(self.Ns[s] + EPS)
-            
             if u > cur_best:
                 cur_best = u
                 best_act = a
-        
         
         a = best_act
         next_program = self.game.getNextState(program, a)
         v = self.search(next_program, opponent)
         
         if (s, a) in self.Qsa:
-            self.Qsa[(s,a)] = (self.Nsa[(s,a)]*self.Qsa[(s,a)] + v) /(self.Nsa[(s,a)]+1)
+            self.Qsa[(s,a)] = (self.Nsa[(s,a)]*self.Qsa[(s,a)] + v)/(self.Nsa[(s,a)]+1)
             self.Nsa[(s,a)] += 1
         else:
             self.Qsa[(s,a)] = v

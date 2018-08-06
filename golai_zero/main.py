@@ -2,6 +2,7 @@ from coach import Coach
 from model import GolaiZero
 from game import Game
 from utils import dotdict
+import torch
 
 args = dotdict({
     
@@ -28,6 +29,12 @@ args = dotdict({
     'gameSteps': 100,
     
     # Model
+    'lr': 0.001,
+    'dropout': 0.3,
+    'epochs': 10,
+    'batch_size': 64,
+    'cuda': torch.cuda.is_available(),
+    'num_channels': 512,
     'resnetBlocks': 10,
     'resnetInputDepth': 1,
     'resnetChannelDepth': 64,
@@ -38,8 +45,8 @@ args = dotdict({
 })
 
 if __name__=="__main__":
-    g = Game(6)
-    nnet = GolaiZero(args)
+    g = Game(args)
+    nnet = NNetWrapper(args)
     
     if args.load_model:
         nnet.load_checkpoint(args.load_folder_file[0], args.load_folder_file[1])
@@ -49,7 +56,6 @@ if __name__=="__main__":
         print("Load trainExamples from file")
         c.loadTrainExamples()
     c.learn()
-    
     
     
     

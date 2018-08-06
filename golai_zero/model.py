@@ -68,7 +68,7 @@ class PolicyHead(nn.Module):
         self.conv1 = conv1x1(channels, 1)
         self.b = nn.BatchNorm2d(1)
         self.flatten = Flatten()
-        self.linear = nn.Linear(program_size**2, 512)
+        self.linear = nn.Linear(program_size**2, vocab)
         self.logsoftmax = nn.LogSoftmax(dim=1)
     
     def forward(self, x):
@@ -81,12 +81,14 @@ class PolicyHead(nn.Module):
 class GolaiZero(nn.Module):
     def __init__(self, args):
         super().__init__()
-        self.resnet = MainResnet(ResnetBlock, args.resnetBlocks, args.resnetInputDepth, args.resnetChannelDepth)
-        self.policyhead = PolicyHead(args.programSize, args.vocabLen, args.resnetChannelDepth)
-        self.valuehead = ValueHead(args.programSize, args.resnetChannelDepth)        
+        self.args = args
+        self.resnet = MainResnet(ResnetBlock, self.args.resnetBlocks, self.args.resnetInputDepth, self.args.resnetChannelDepth)
+        self.policyhead = PolicyHead(self.args.programSize, self.args.vocabLen, self.args.resnetChannelDepth)
+        self.valuehead = ValueHead(self.args.programSize, self.args.resnetChannelDepth)        
         
         
     def forward(self, x):
+        x = x.view(-1, 1, self.args.programWidth, self.args.programHeight)      
         features = self.resnet(x)
         policy_out = self.policyhead(features)
         value_out = self.valuehead(features)
