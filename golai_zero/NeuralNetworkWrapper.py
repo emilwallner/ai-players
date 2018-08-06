@@ -108,11 +108,12 @@ class NNetWrapper():
         # preparing input
         program = torch.FloatTensor(program.astype(np.float64))
         if self.args.cuda: program = program.contiguous().cuda()
-        program = Variable(program, volatile=True)
-        program = program.view(1, self.program_x, self.program_y)
+        with torch.no_grad():
+            program = Variable(program)
+            program = program.view(1, self.program_x, self.program_y)
 
-        self.nnet.eval()
-        pi, v = self.nnet(program)
+            self.nnet.eval()
+            pi, v = self.nnet(program)
 
         #print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return torch.exp(pi).data.cpu().numpy()[0], v.data.cpu().numpy()[0]

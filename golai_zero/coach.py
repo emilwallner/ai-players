@@ -41,7 +41,7 @@ class Coach():
             temp = int(episodeStep < self.args.tempThreshold)
             
             pi = self.mcts.getActionProb(self.curProgram, self.curOpponent, temp)
-            trainExamples.append([self.curProgram, pi, None])
+            trainExamples.append([self.game.integerImageRepresentation(self.curProgram), pi, None])
             action = np.random.choice(len(pi), p=pi)
             self.game.getNextState(self.curProgram, action)
             
@@ -77,16 +77,15 @@ class Coach():
                 total=bar.elapsed_td, eta=bar.eta_td)
 
                 bar.next()
-            bar.finished()
 
-            self.trainExamplesHistory.append(interationTrainExamples)
+            self.trainExamplesHistory.append(iterationTrainExamples)
 
             if len(self.trainExamplesHistory) > self.args.numItersForTrainExamplesHistory:
                 print("len(trainExamplesHistory) =", len(self.trainExamplesHistory), \
                       " => remove the oldest trainExamples")
                 self.trainExamplesHistory.pop(0)
 
-            self.saveTrainExamples(i-1)
+            #self.saveTrainExamples(i-1)
             trainExamples = []
 
             for e in self.trainExamplesHistory:
