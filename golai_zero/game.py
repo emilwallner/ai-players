@@ -104,7 +104,7 @@ class Game():
         elif ones > twos:
             winner = -1
         else:
-            winner = random.uniform(0.000001, 0.000000001)
+            winner = 0.00000001
             
         return winner
 

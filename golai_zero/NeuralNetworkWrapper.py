@@ -70,8 +70,8 @@ class NNetWrapper():
                 total_loss = l_pi + l_v
 
                 # record loss
-                pi_losses.update(l_pi.data[0], programs.size(0))
-                v_losses.update(l_v.data[0], programs.size(0))
+                pi_losses.update(l_pi.data.item(), programs.size(0))
+                v_losses.update(l_v.data.item(), programs.size(0))
 
                 # compute gradient and do SGD step
                 optimizer.zero_grad()

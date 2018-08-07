@@ -21,6 +21,7 @@ class Coach():
         self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []
         self.allOpponents = []
+        self.wins = 0
     
     def createRandomOpp(self):
         
@@ -28,6 +29,14 @@ class Coach():
             value = list(range(0, self.args.vocabLen))  
             self.allOpponents.append(np.random.choice(value, self.args.predictionLen).tolist())
         
+    
+    def dirichlet_noise(self, probs):
+
+        dim = (len(probs))
+        probs = np.array(probs, dtype=float)
+        new_probs = (1 - self.args.eps) * probs + self.args.eps * np.random.dirichlet(np.full(dim, self.args.alpha))
+
+        return new_probs
     
     def executeEpisode(self, eps):
         
@@ -41,13 +50,19 @@ class Coach():
             temp = int(episodeStep < self.args.tempThreshold)
             
             pi = self.mcts.getActionProb(self.curProgram, self.curOpponent, temp)
+            
+            if episodeStep == 1 and self.args.dirichlet_noise:
+                pi = self.dirichlet_noise(pi)
+                
             trainExamples.append([self.game.integerImageRepresentation(self.curProgram), pi, None])
             action = np.random.choice(len(pi), p=pi)
             self.game.getNextState(self.curProgram, action)
+                
             
             if episodeStep == self.args.predictionLen:
                 self.allOpponents.append(self.curProgram)
                 r = self.game.getGameEnded(self.curProgram, self.curOpponent)
+                self.wins += r
                 return[(x[0], x[1], r) for x in trainExamples]
             
     def learn(self):
@@ -64,9 +79,10 @@ class Coach():
             eps_time = AverageMeter()
             bar = Bar('Self Play', max=self.args.numEps)
             end = time.time()
-            self.trainOpponents = self.allOpponents[:self.args.numEps]
+            self.trainOpponents = self.allOpponents[-self.args.numEps:]
             shuffle(self.trainOpponents)
-
+            self.wins = 0
+            
             for eps in range(self.args.numEps):
                 self.mcts = MCTS(self.game, self.nnet, self.args)
                 iterationTrainExamples += self.executeEpisode(eps)
@@ -77,7 +93,9 @@ class Coach():
                 total=bar.elapsed_td, eta=bar.eta_td)
 
                 bar.next()
-
+            
+            print("\n\nWins:", self.wins)
+            
             self.trainExamplesHistory.append(iterationTrainExamples)
 
             if len(self.trainExamplesHistory) > self.args.numItersForTrainExamplesHistory:

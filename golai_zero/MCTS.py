@@ -14,7 +14,7 @@ class MCTS():
         self.Ns = {}   # Board state was visited
         self.Ps = {}   # Policy from neural network
         self.Es = {}   # Stores the rewards from game.getGameEnded
-
+    
     def getActionProb(self, program, opponent, temp=1):
         
         for i in range(self.args.numMCTSSims):
