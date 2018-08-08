@@ -17,7 +17,7 @@ args = dotdict({
     
     #Program
     'numIters': 100000,
-    'numEps': 1000,
+    'numEps': 100,
     'vocabWidth': 2, 
     'vocabHeight': 2,
     'programSize': 6,
@@ -34,7 +34,7 @@ args = dotdict({
     'arenaCompare': 40,
     'cpuct': 1,
     'eps': 0.25,
-    'alpha': 0.15,
+    'alpha': 0.3, # 0.03 for Go 0.3 for Chess
     'dirichlet_noise': True,
     
     # Game 

@@ -100,9 +100,9 @@ class Game():
                 twos += 1
 
         if ones > twos:
-            winner = 1
+            winner = 1.0
         elif ones > twos:
-            winner = -1
+            winner = -1.0
         else:
             winner = 0.00000001
             
