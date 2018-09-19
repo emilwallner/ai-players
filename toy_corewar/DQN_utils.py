@@ -32,21 +32,16 @@ class LinearSchedule(object):
 
 def state_to_tensors(state):
     prog_state, mem_state = state
-    instr, var, val = zip(*prog_state)
-    instr = torch.tensor(instr).unsqueeze(1).to(DEVICE)
-    var = torch.tensor(var).unsqueeze(1).to(DEVICE)
-    val = torch.tensor(val).unsqueeze(1).to(DEVICE)
+    prog = torch.tensor(prog_state).unsqueeze(1).to(DEVICE)
     mem = torch.tensor(mem_state).view(-1).unsqueeze(0).to(DEVICE)
-    return instr, var, val, mem
+    return prog, mem
 
 def batch_to_tensors(batch):
     tensors = [state_to_tensors(state) for state in batch]
-    instr_tensors, var_tensors, val_tensors, mem_tensors = zip(*tensors)
-    instr = torch.cat(instr_tensors, dim=1)
-    var = torch.cat(var_tensors, dim=1)
-    val = torch.cat(val_tensors, dim=1)
+    prog_tensors, mem_tensors = zip(*tensors)
+    prog = torch.cat(prog_tensors, dim=1)
     mem = torch.cat(mem_tensors, dim=0)
-    return instr, var, val, mem
+    return prog, mem
 
 def assess(Q, reward_func, file=None):
     env = Env(reward_func)
