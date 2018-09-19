@@ -33,5 +33,5 @@ def run_experiment_series(name, reward_functions, episodes):
 
             
 if __name__ == '__main__':
-#      run_experiment_series("04-Small_LSTM", reward_functions, 50000)
-   run_experiment_series("test_LSTM_fusion", [maximize_all_registers], 50000)
+    run_experiment_series("05-One-LSTM_1-layerFC", reward_functions, 50000)
+#   run_experiment_series("test_LSTM_fusion", [maximize_all_registers], 50000)
