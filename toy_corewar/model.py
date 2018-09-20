@@ -6,21 +6,20 @@ from config import *
 torch.set_default_tensor_type('torch.FloatTensor')
 
 class Dueling_DQN(nn.Module):
-    def __init__(self):
+    def __init__(self, h_size, middle_size, lstm_layers):
         super(Dueling_DQN, self).__init__()
         
         input_size = N_INSTRUCTIONS + N_VARS * NUM_REGISTERS + 1
-        h_size = 35
         s_size = N_TARGETS * 2
        
-        self.lstm_p = nn.LSTM(input_size=input_size, hidden_size=h_size, num_layers=2)
+        self.lstm_p = nn.LSTM(input_size=input_size, hidden_size=h_size, num_layers=lstm_layers)
         self.fc_s1 = nn.Linear(in_features=s_size, out_features=s_size)
         self.fc_s2 = nn.Linear(in_features=s_size, out_features=s_size)
         
-        self.fc1 = nn.Linear(in_features=(h_size + s_size), out_features=128)
+        self.fc1 = nn.Linear(in_features=(h_size + s_size), out_features=middle_size)
 
-        self.fc_adv = nn.Linear(in_features=128, out_features=NUM_ACTIONS)
-        self.fc_val = nn.Linear(in_features=128, out_features=1)
+        self.fc_adv = nn.Linear(in_features=middle_size, out_features=NUM_ACTIONS)
+        self.fc_val = nn.Linear(in_features=middle_size, out_features=1)
         
         self.relu = nn.ReLU()
     

@@ -15,20 +15,37 @@ import torch.nn as nn
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 
-def train(Q, reward_func, M, verbose=False, log_dir=None):
-
+def train(
+    reward_func, 
+    M,
+    h_size,
+    middle_size,
+    lstm_layers, 
+    epsilon_decay_steps,
+    learning_starts,
+    learning_freq,
+    lr,
+    gamma,
+    batch_size,
+    replay_buffer_size,
+    Q=None,
+    verbose=False, 
+    log_dir=None
+):
+    
     env = Env(reward_func)
     num_actions = env.action_space_n
    
-    epsilon_schedule = LinearSchedule(schedule_timesteps=M, final_p=0.1)
-    replay_buffer = deque(maxlen=REPLAY_BUFFER_SIZE)
-    Q_target = Dueling_DQN()
+    epsilon_schedule = LinearSchedule(schedule_episodes=epsilon_decay_steps, final_p=0.1)
+    replay_buffer = deque(maxlen=replay_buffer_size)
+    Q = Dueling_DQN(h_size, middle_size, lstm_layers) if Q is None else Q
+    Q_target = Dueling_DQN(h_size, middle_size, lstm_layers)
     Q_target.load_state_dict(Q.state_dict())
     Q.to(DEVICE)
     Q_target.to(DEVICE)
     
     loss_function = torch.nn.MSELoss()
-    optimizer = optim.RMSprop(Q.parameters(), lr=LR)
+    optimizer = optim.RMSprop(Q.parameters(), lr=lr)
     num_parameter_updates = 0
     writer = SummaryWriter()
 
@@ -50,7 +67,7 @@ def train(Q, reward_func, M, verbose=False, log_dir=None):
 
         for t in range(MAX_LENGTH):
             # Select action with E-greedy policy
-            if episode < LEARNING_STARTS or np.random.rand() < epsilon_schedule.value(episode):
+            if episode < learning_starts or np.random.rand() < epsilon_schedule.value(episode):
                 a = np.random.randint(num_actions)
             else:
                 a = Q(state_to_tensors(s)).argmax(1).item()
@@ -65,9 +82,9 @@ def train(Q, reward_func, M, verbose=False, log_dir=None):
             s = s_prime
 
             # EXPERIENCE REPLAY (every LEARNING_FREQth time step after learning starts) 
-            if (episode > LEARNING_STARTS and (episode * MAX_LENGTH + t) % LEARNING_FREQ == 0):
+            if (episode > learning_starts and (episode * MAX_LENGTH + t) % learning_freq == 0):
                 # Sample from the replay buffer
-                transitions = random.sample(replay_buffer, BATCH_SIZE)
+                transitions = random.sample(replay_buffer, batch_size)
 
                 # Extract each batch of elements from the sample of transitions
                 batch = Transition(*zip(*transitions))
@@ -85,7 +102,7 @@ def train(Q, reward_func, M, verbose=False, log_dir=None):
                 a_prime =  Q(next_state_batch).argmax(1).unsqueeze(1)
                 q_s_a_prime = Q_target(next_state_batch).gather(1, a_prime).squeeze()
                 q_s_a_prime *= 1 - done_batch
-                target_q_s_a = reward_batch + GAMMA * q_s_a_prime
+                target_q_s_a = reward_batch + gamma * q_s_a_prime
                 target_q_s_a = target_q_s_a.detach()
 
                 # Backprop
