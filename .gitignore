@@ -6,3 +6,6 @@ golai_zero/output
 output_expand/
 golai_zero/output_expand/
 golai_zero/checkpoint_expand/
+*output*
+*runs*
+*checkpoint*
