@@ -15,20 +15,20 @@ import torch.nn as nn
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 
-def train(
+def train_DQN(
     reward_func, 
-    M,
+    episodes,
     h_size,
     middle_size,
     lstm_layers, 
     epsilon_decay_steps,
     learning_starts,
     learning_freq,
+    target_update_freq,
     lr,
     gamma,
     batch_size,
     replay_buffer_size,
-    Q=None,
     verbose=False, 
     log_dir=None
 ):
@@ -38,7 +38,7 @@ def train(
    
     epsilon_schedule = LinearSchedule(schedule_episodes=epsilon_decay_steps, final_p=0.1)
     replay_buffer = deque(maxlen=replay_buffer_size)
-    Q = Dueling_DQN(h_size, middle_size, lstm_layers) if Q is None else Q
+    Q = Dueling_DQN(h_size, middle_size, lstm_layers)
     Q_target = Dueling_DQN(h_size, middle_size, lstm_layers)
     Q_target.load_state_dict(Q.state_dict())
     Q.to(DEVICE)
@@ -51,18 +51,18 @@ def train(
 
     if verbose:
         print("Starting training [reward function = {}] for {} episodes...".format(
-            reward_func.__name__, M))
+            reward_func.__name__, episodes))
     
     if log_dir is not None:
         log_file = os.path.join(log_dir, "logs")
         with open(log_file, "w") as f:
-            print("Starting training for {} episodes...".format(M), file=f)
+            print("Starting training for {} episodes...".format(episodes), file=f)
             print("Reward function:\n\n{}\n\n\n".format(inspect.getsource(reward_func)), file=f)
         model_dir = os.path.join(log_dir, "models")
         os.makedirs(model_dir)
     
     start_time = time.time()
-    for episode in range(M):
+    for episode in range(episodes):
         s = env.reset()
 
         for t in range(MAX_LENGTH):
@@ -113,7 +113,7 @@ def train(
                 num_parameter_updates += 1
 
                 # Update target DQN every once in a while
-                if num_parameter_updates % TARGET_UPDATE_FREQ == 0:
+                if num_parameter_updates % target_update_freq == 0:
                     Q_target.load_state_dict(Q.state_dict())
 
             if done:
@@ -137,3 +137,4 @@ def train(
         ## To be added if needed
         
     writer.close()
+    return Q

@@ -1,6 +1,6 @@
 import os
 from model import Dueling_DQN
-from train import train
+from train import *
 from reward import *
 import torch
 import multiprocessing
@@ -10,10 +10,9 @@ from itertools import repeat
 def run_experiment(reward_func, episodes, root_dir):
     log_dir = os.path.join(root_dir, reward_func.__name__)
     os.makedirs(log_dir)
-    Q = Dueling_DQN()
-    train(Q, reward_func, episodes, log_dir=log_dir, verbose=True)
+    DDQN = train_DQN(reward_func, episodes, log_dir=log_dir, verbose=True)
     final_save_path = os.path.join(log_dir, "models", "final")
-    torch.save(Q.state_dict(), final_save_path)
+    torch.save(DDQN.state_dict(), final_save_path)
     
 def run_experiment_series(name, reward_functions, episodes):
     os.makedirs("Experiments", exist_ok=True)
@@ -33,5 +32,5 @@ def run_experiment_series(name, reward_functions, episodes):
 
             
 if __name__ == '__main__':
-    run_experiment_series("05-One-LSTM_1-layerFC", reward_functions, 50000)
+    run_experiment_series("lol", reward_functions, 500)
 #   run_experiment_series("test_LSTM_fusion", [maximize_all_registers], 50000)
