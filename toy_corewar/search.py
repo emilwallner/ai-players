@@ -3,6 +3,7 @@ from reward import *
 import torch
 import math
 from environment import Env
+from train import train_DQN
 
 
 MAX_EPISODES = 50000
@@ -67,9 +68,28 @@ def run_environment(
     replay_buffer_size,
     reward_func
 ):
-    env = Env(reward_func)
+    Q = train_DQN(reward_func, 50000, h_size, middle_size, lstm_layers, epsilon_decay_steps, learning_starts, learning_freq, target_update_freq, lr, gamma, batch_size, replay_buffer_size)
+    
+    
     
             
         
 if __name__=="__main__":
     search(specific_register_values, 50000)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
