@@ -43,7 +43,7 @@ def batch_to_tensors(batch):
     mem = torch.cat(mem_tensors, dim=0)
     return prog, mem
 
-def assess(Q, reward_func, file=None):
+def assess(Q, reward_func, file=None, print=True):
     env = Env(reward_func)
     s = env.reset()
     
@@ -53,5 +53,6 @@ def assess(Q, reward_func, file=None):
         s = s_prime
         if done:
             break
-    env.print_details(file=file)
-    return env
+    if print:
+        env.print_details(file=file)
+    return env.total_reward

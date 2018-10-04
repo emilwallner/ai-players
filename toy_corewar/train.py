@@ -35,6 +35,9 @@ def train_DQN(
     
     env = Env(reward_func)
     num_actions = env.action_space_n
+    best_score = -float('Inf')
+    best_episode = 0
+    best_Q = Dueling_DQN(h_size, middle_size, lstm_layers)
    
     epsilon_schedule = LinearSchedule(schedule_episodes=epsilon_decay_steps, final_p=0.1)
     replay_buffer = deque(maxlen=replay_buffer_size)
@@ -121,20 +124,25 @@ def train_DQN(
         
         # Console output
         if verbose and (episode + 1) % LOG_FREQ == 0:
-            print("Episode {} completed".format(episode + 1))
+            print("Episode {} completed for {}".format(episode + 1, reward_func.__name__))
         
         # Log output
         if log_dir is not None and (episode + 1) % LOG_FREQ == 0:
             with open(log_file, "a") as f:
                 current_time = datetime.timedelta(seconds=(time.time()-start_time))
                 print("Episode {}: [time:  {}]\n".format(episode+1, str(current_time)), file=f)
-                test_env = assess(Q, reward_func, file=f)
+                score = assess(Q, reward_func, file=f)
                 print("\n\n\n", file=f)
                 # log to Tensorboard
-                writer.add_scalars(log_dir, {'rewards': test_env.total_reward}, episode)
+                writer.add_scalars(log_dir, {'rewards': score}, episode)
                 
-        # Model saving
-        ## To be added if needed
+        # Agent assessment
+        if (episode + 1) % ASSESS_FREQ == 0:
+            score = assess(Q, reward_func, print=False)
+            if score > best_score:
+                best_score = score
+                best_episode = episode + 1
+                best_Q.load_state_dict(Q.state_dict())
         
     writer.close()
-    return Q
+    return best_Q, best_score, best_episode

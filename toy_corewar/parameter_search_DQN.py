@@ -6,15 +6,15 @@ from environment import Env
 from train import train_DQN
 
 
-MAX_EPISODES = 50000
+MAX_EPISODES = 100000
 
 
-def search(reward_func, M):
+def search(reward_func):
     conn = sigopt.Connection(client_token='QWILQOQCAHZIVDIMLOLIQZGYCBTIKTVTEFQMJXSAVWQVBLTA')
     
     DQN_experiment = conn.experiments().create(
         name= reward_func.__name__ + 'Dueling_DQN',
-        observation_budget=128,
+        observation_budget=300,
         parameters=[
             dict(name='h_size', type='int', bounds=dict(min=20,max=100)),
             dict(name='middle_size', type='int', bounds=dict(min=30, max=250)),
@@ -68,14 +68,26 @@ def run_environment(
     replay_buffer_size,
     reward_func
 ):
-    Q = train_DQN(reward_func, 50000, h_size, middle_size, lstm_layers, epsilon_decay_steps, learning_starts, learning_freq, target_update_freq, lr, gamma, batch_size, replay_buffer_size)
-    
+    DQN, score, best_episode = train_DQN(reward_func, 
+                                          MAX_EPISODES, 
+                                          h_size, 
+                                          middle_size, 
+                                          lstm_layers, 
+                                          epsilon_decay_steps, 
+                                          learning_starts, 
+                                          learning_freq, 
+                                          target_update_freq, 
+                                          lr, 
+                                          gamma, 
+                                          batch_size, 
+                                          replay_buffer_size)
+    return score
     
     
             
         
 if __name__=="__main__":
-    search(specific_register_values, 50000)
+    search(specific_register_values)
     
     
     
