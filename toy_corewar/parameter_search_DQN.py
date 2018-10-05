@@ -68,7 +68,7 @@ def run_environment(
     replay_buffer_size,
     reward_func
 ):
-    DQN, score, best_episode = train_DQN(reward_func, 
+    DQN, reward, best_episode = train_DQN(reward_func, 
                                           MAX_EPISODES, 
                                           h_size, 
                                           middle_size, 
@@ -81,7 +81,7 @@ def run_environment(
                                           gamma, 
                                           batch_size, 
                                           replay_buffer_size)
-    return score
+    return reward + 1 / best_episode
     
     
             
