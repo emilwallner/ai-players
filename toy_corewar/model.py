@@ -8,6 +8,7 @@ torch.set_default_tensor_type('torch.FloatTensor')
 class Dueling_DQN(nn.Module):
     def __init__(self, h_size, middle_size, lstm_layers):
         super(Dueling_DQN, self).__init__()
+        self.num_lstm_layers = lstm_layers
         
         input_size = N_INSTRUCTIONS + N_VARS * NUM_REGISTERS + 1
         s_size = N_TARGETS * 2
@@ -36,7 +37,7 @@ class Dueling_DQN(nn.Module):
         s = self.relu(self.fc_s2(s.float()))
         
         # Concatenate P and S vectors and process in 2 FC layers
-        x = torch.cat((p[1], s), dim=1)
+        x = torch.cat((p[self.num_lstm_layers - 1], s), dim=1)
         x = self.relu(self.fc1(x))
         
         # Split processing in 2 streams: value and advantage
