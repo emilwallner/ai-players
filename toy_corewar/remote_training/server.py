@@ -1,12 +1,17 @@
+import config
+config.load("config.json")
 import socket
 import json
 import multiprocessing
 #add ssl later
 
+trainingcfg = config.get_cfg()
+
 from protocol import Protocol
 
 def get_config(sock, data):
-	raise Exception("undefined function")
+	p = Protocol(sock)
+	p.send()
 
 def ping(sock, data):
 	p = Protocol(sock)
