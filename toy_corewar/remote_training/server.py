@@ -1,3 +1,7 @@
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/' + '..'))
+
 import config
 config.load("config.json")
 import socket
@@ -7,11 +11,11 @@ import multiprocessing
 
 trainingcfg = config.get_cfg()
 
-from protocol import Protocol
+from .protocol import Protocol
 
 def get_config(sock, data):
 	p = Protocol(sock)
-	p.send()
+	p.send_obj({"message": trainingcfg.todict()})
 
 def ping(sock, data):
 	p = Protocol(sock)
@@ -45,12 +49,14 @@ def handler(conn):
 			p.send_obj({"message": str(e)})
 
 
+portN = 3000
+
 sock = socket.socket()
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-sock.bind(("", 8888))
+sock.bind(("", portN))
 
 sock.listen()
-
+print ("server listening on port {}".format(portN))
 while True:
 	try:
 		conn, addr = sock.accept()
