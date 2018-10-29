@@ -74,11 +74,9 @@ class Env():
 
     def build_state(self):
         # Take self.program and self.cw to build a representation of the state
-        program_state = self.program.to_embedding_sequence()
         current_mem = self.register_states[-1]
         target_mem = self.reward_func.targets
-        memory_state = np.array([current_mem, target_mem])
-        return program_state, memory_state
+        return np.array([current_mem, target_mem])
         
     def interpret_action(action):
         regs = CWCFG.NUM_REGISTERS

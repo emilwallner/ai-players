@@ -15,9 +15,8 @@ CWCFG = CFG.settings.toy_corewar
 
 class DQN_Agent(Agent):
     def __init__(self,
-                 h_size, 
                  middle_size, 
-                 lstm_layers, 
+                 middle_layers,
                  learning_starts,
                  learning_freq,
                  target_update_freq,
@@ -32,10 +31,10 @@ class DQN_Agent(Agent):
         Agent.__init__(self, verbose, log_dir)
         
         # Initialize neural networks
-        self.Q = Dueling_DQN(h_size, middle_size, lstm_layers).to(DEVICE)
-        self.Q_target = Dueling_DQN(h_size, middle_size, lstm_layers).to(DEVICE)
+        self.Q = Dueling_DQN(middle_size, middle_layers).to(DEVICE)
+        self.Q_target = Dueling_DQN(middle_size, middle_layers).to(DEVICE)
         self.model = self.Q # alias which is used in the parent class
-        self.best_model = Dueling_DQN(h_size, middle_size, lstm_layers)
+        self.best_model = Dueling_DQN(middle_size, middle_layers)
         self.Q_target.load_state_dict(self.Q.state_dict())
         self.best_model.load_state_dict(self.Q.state_dict())
         
