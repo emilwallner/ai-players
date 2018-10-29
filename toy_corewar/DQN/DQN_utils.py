@@ -33,14 +33,9 @@ class LinearSchedule(object):
         return self.initial_p + fraction * (self.final_p - self.initial_p)
 
 def state_to_tensors(state):
-    prog_state, mem_state = state
-    prog = torch.tensor(prog_state).unsqueeze(1).to(DEVICE)
-    mem = torch.tensor(mem_state).view(-1).unsqueeze(0).to(DEVICE)
-    return prog, mem
+    return torch.tensor(state).view(-1).unsqueeze(0).to(DEVICE)
 
 def batch_to_tensors(batch):
     tensors = [state_to_tensors(state) for state in batch]
-    prog_tensors, mem_tensors = zip(*tensors)
-    prog = torch.cat(prog_tensors, dim=1)
-    mem = torch.cat(mem_tensors, dim=0)
-    return prog, mem
+    return torch.cat(tensors, dim=0)
+
