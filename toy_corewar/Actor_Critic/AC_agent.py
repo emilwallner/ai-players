@@ -17,15 +17,14 @@ CWCFG = CFG.settings.toy_corewar
 
 class AC_Agent(Agent):
     def __init__(self,
-                 h_size,
                  middle_size,
                  lstm_layers,
                  lr,
                  gamma,
                  verbose=False, log_dir=None):
         Agent.__init__(self, verbose, log_dir)
-        self.model = AC_Model(h_size, middle_size, lstm_layers).to(DEVICE)
-        self.best_model = AC_Model(h_size, middle_size, lstm_layers)
+        self.model = AC_Model(middle_size, lstm_layers).to(DEVICE)
+        self.best_model = AC_Model(middle_size, lstm_layers)
         self.best_model.load_state_dict(self.model.state_dict())
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
         

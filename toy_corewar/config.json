@@ -49,7 +49,6 @@
         "AC": {
             "agent": "AC_Agent",
             "parameters": {
-                "h_size": 35,
                 "middle_size": 128,
                 "lstm_layers": 2,
                 "lr": 0.01,
